@@ -8,4 +8,8 @@ python3Packages.buildPythonApplication {
   propagatedBuildInputs = with python3.pkgs; [ setuptools ];
 
   src = ../python-app;
+
+  meta = {
+    mainProgram = "xnode-python-template";
+  };
 }

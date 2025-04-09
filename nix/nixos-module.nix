@@ -16,13 +16,20 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    users.groups.xnode-python-template = { };
+    users.users.xnode-python-template = {
+      isSystemUser = true;
+      group = "xnode-python-template";
+    };
+
     systemd.services.xnode-python-template = {
       wantedBy = [ "multi-user.target" ];
       description = "Python App.";
       after = [ "network.target" ];
       serviceConfig = {
         ExecStart = "${lib.getExe xnode-python-template}";
-        DynamicUser = true;
+        User = "xnode-python-template";
+        Group = "xnode-python-template";
       };
     };
   };

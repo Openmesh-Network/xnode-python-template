@@ -1,49 +1,29 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    xnode-python-template.url = "github:Openmesh-Network/xnode-python-template";
+    xnode-manager.url = "github:Openmesh-Network/xnode-manager";
+    xnode-python-template.url = "github:OpenxAI-Network/xnode-python-template"; # "path:..";
+    nixpkgs.follows = "xnode-python-template/nixpkgs";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      xnode-python-template,
-      ...
-    }:
-    let
-      system = "x86_64-linux";
-    in
-    {
-      nixosConfigurations.container = nixpkgs.lib.nixosSystem {
-        inherit system;
-        specialArgs = {
-          inherit xnode-python-template;
-        };
-        modules = [
-          (
-            { xnode-python-template, ... }:
-            {
-              imports = [
-                xnode-python-template.nixosModules.default
-              ];
-
-              boot.isContainer = true;
-
-              services.xnode-python-template = {
-                enable = true;
-              };
-
-              networking = {
-                useHostResolvConf = nixpkgs.lib.mkForce false;
-              };
-
-              services.resolved.enable = true;
-
-              system.stateVersion = "25.05";
-            }
-          )
-        ];
+  outputs = inputs: {
+    nixosConfigurations.container = inputs.nixpkgs.lib.nixosSystem {
+      specialArgs = {
+        inherit inputs;
       };
+      modules = [
+        inputs.xnode-manager.nixosModules.container
+        {
+          services.xnode-container.xnode-config = {
+            host-platform = ./xnode-config/host-platform;
+            state-version = ./xnode-config/state-version;
+            hostname = ./xnode-config/hostname;
+          };
+        }
+        inputs.xnode-python-template.nixosModules.default
+        {
+          services.xnode-python-template.enable = true;
+        }
+      ];
     };
+  };
 }
